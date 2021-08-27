@@ -1,0 +1,45 @@
+create table enquiry(Name string, Age int,Email string,Phone string,Course string,Fee int,Discount int,Demo string,Status string) clustered by (Course) into 5 buckets stored as orc tblproperties('transactional'='true');
+
+ create table master(Name string, Age int,Email string,Phone string,Course string,Fee int,Discount int,Demo string,Status string) row format delimited fields terminated by ',' stored as textfile;
+
+load data local inpath 'Master.txt' overwrite into table master;
+
+ insert into table enquiry select * from master;
+
+create table weekday_demo(name string,age int,email string,phone string,course string,demo_day string,demo_time string) clustered by (course) into 5 buckets stored as orc tblproperties('transactional'='true');
+
+ insert overwrite table weekday_demo select name,age,email,phone,course,substr(demo,4,3) as demo_day,substr(demo,8,4) as demo_time from enquiry where substr(demo,1,2)=='WD';
+
+ create table weekend_demo(name string,age int,email string,phone string,course string,demo_day string,demo_time string) clustered by (course) into 5 buckets stored as orc tblproperties('transactional'='true');
+
+insert overwrite table weekend_demo select name,age,email,phone,course,substr(demo,4,3) as demo_day,substr(demo,8,4) as demo_time from enquiry where substr(demo,1,2)=='WE';
+
+create table demo_not_done(name string,age int,email string,phone string,course string,week string,demo_day string,demo_time string) clustered by (course) into 5 buckets stored as orc tblproperties('transactional'='true');
+
+insert overwrite table demo_not_done select name,age,email,phone,course,case when substr(demo,1,2)=='WD' then 'WEEKDAYS' when substr(demo,1,2)=='WE' then 'WEEKEND' end,substr(demo,4,3) as demo_day,substr(demo,8,4) as demo_time from enquiry where status='DND';
+
+create table weekdays_joining(name string,age int,email string,phone string,course string,fee int,discount int) clustered by(course) into 5 buckets stored as orc tblproperties('transactional'='true');
+
+ insert overwrite table weekdays_joining select name,age,email,phone,course,fee,discount from enquiry where status='EWD';
+
+create table weekend_joining(name string,age int,email string,phone string,course string,fee int,discount int) clustered by(course) into 5 buckets stored as orc tblproperties('transactional'='true');
+
+insert overwrite table weekend_joining select name,age,email,phone,course,fee,discount from enquiry where status='EWE';
+
+create table not_joined(name string,age int,email string,phone string,course string,fee int,discount int,type string) clustered by(course) into 5 buckets stored as orc tblproperties('transactional'='true');
+
+insert overwrite table not_joined select name,age,email,phone,course,fee,discount,case when substr(demo,1,2)=='WD' then 'Weekdays' else 'Weekend' end from enquiry where status='NJ';
+
+create table table4(name string,age int,email string,phone string,course string,fee int,paid int,mode string,no_of_install int,due_date string) row format delimited fields terminated by ',' stored as textfile;
+
+load data local inpath 'Table4.txt' overwrite into table table4;
+
+ create table payment(name string,age int,email string,phone string,course string,type string,fee int) stored as orc tblproperties('transactional'='true');
+
+insert overwrite table payment select name,age,email,phone,course,case when substr(demo,1,2)=='WD' then 'Weekdays' else 'Weekend' end,fee from enquiry where status='EWE' or status='EWD';
+
+alter table payment add columns(paid int,mode string,no_of_install int,due_date string);
+
+insert overwrite table payment select p.name, p.age, p.email, p.phone, p.course,p.type, p.fee,j.paid,j.mode,j.no_of_install,j.due_date from payment p left join table4 j on p.name=j.name; 
+
+insert overwrite table payment select p.name, p.age, p.email, p.phone, p.course,p.type, p.fee,j.paid,j.mode,j.no_of_install,j.due_date from payment p join table4 j on p.name=j.name; 
