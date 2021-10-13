@@ -1,4 +1,4 @@
-# PROJECT NAME
+# ASSOCIATE MANAGEMENT SYSTEM -AMS
 
 ## Project Description
 This is a project which is created in hive. 
@@ -20,9 +20,17 @@ We have run this project in hive terminal in GCP and CDH5.
 * Cloudera 5
 
 ## Features
-1. Student can ask to schedule the demo if he/she is interested to join the training.
-2. Reschedule facility for demo is available is somehow any student miss the demo than we can reschedule the demo in that case.
-3. fee can be paid through installments
+1. Management team will be able to fetch number of students enrolled.
+
+2. They can fetch the list of students who done the demo or missed the demo.
+
+3. This project has features like update, delete and append a new set of rows.
+
+4. Management team can perform bucketing and partitioning if required.
+
+5. We can also perform CRUD operation on our payment table because of its ORC nature.
+
+6. In this project all the tables overwritten from master table. So we do not need to update each table individually.
 
 To-do list:
 * Create a user interface so that it would be easier for user to register on the website.
